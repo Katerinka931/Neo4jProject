@@ -1,74 +1,74 @@
-package org.neo4j;
+package org.neo4j.repository;
 
 import org.neo4j.driver.Driver;
-import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.Session;
 import org.neo4j.driver.Values;
-import org.neo4j.driver.types.Node;
-import org.cassandra.Team;
+import org.neo4j.entities.Player;
+import org.neo4j.entities.Team;
+import org.neo4j.utils.PrintUtils;
 
 import java.util.Objects;
+import java.util.UUID;
 
-public class Neo4jRepository {
+public class Repository {
 
     private final Driver driver;
 
-    public Neo4jRepository(Driver driver) {
+    public Repository(Driver driver) {
         this.driver = driver;
     }
 
     public void getNodesByMark(String label) {
         String query = Objects.equals(label, "") ? "MATCH (n) RETURN n" : String.format("MATCH (n:%s) RETURN n", label);
-
         try (Session session = driver.session()) {
             Result result = session.run(query);
-            while (result.hasNext()) {
-                Record record = result.next();
-                Node node = record.get("n").asNode();
-                System.out.println(node.asMap());
-            }
+            PrintUtils.print(result);
         }
     }
 
-    public void createTeam(String label, Team team) {
+    public void createTeam(Team team) {
         try (Session session = driver.session()) {
-            session.run(String.format("CREATE (n:%s) SET n.id = $id, n.name = $name, n.count = $count", label),
-                    Values.parameters("id", team.getId(), "name", team.getName(), "count", team.getCount()));
+            UUID uuid = UUID.randomUUID();
+            session.run("CREATE (n:Team) SET n.id = $id, n.name = $name, n.count = $count",
+                    Values.parameters("id", uuid.toString(), "name", team.getName(), "count", team.getCount()));
         }
     }
 
-    public void deleteNode(String label, int id) {
+    public void createPlayer(Player player) {
         try (Session session = driver.session()) {
-            session.run(String.format("MATCH (n:%s) WHERE ID(n) = $id DETACH DELETE n", label),
+            UUID uuid = UUID.randomUUID();
+            session.run("CREATE (n:Player) SET n.id = $id, n.firstName = $firstName, n.lastName = $lastName",
+                    Values.parameters("id", uuid.toString(), "firstName", player.getFirstName(), "lastName", player.getLastName()));
+        }
+    }
+
+    public void deleteNode(String label, String id) {
+        try (Session session = driver.session()) {
+            session.run(String.format("MATCH (n:%s) WHERE n.id = $id DETACH DELETE n", label),
                     Values.parameters("id", id));
         }
     }
 
-    public void updateTeam(String label, Team team) {
+    public void updateTeam(Team team) {
         try (Session session = driver.session()) {
-            session.run(String.format("MATCH (n:%s) WHERE ID(n) = $id SET n.name = $name, n.count = $count", label),
-                    Values.parameters("name", team.getName(), "count", team.getCount()));
+            session.run("MATCH (n:Team) WHERE n.id = $id SET n.name = $name, n.count = $count",
+                    Values.parameters("id", team.getUuid(), "name", team.getName(), "count", team.getCount()));
         }
     }
 
-    //    todo тут две версии как писать ACTED_IN
-    public void addPlayerToTeam(int teamId, Player player) {
+    public void addPlayerToTeam(String teamId, String playerId) {
         try (Session session = driver.session()) {
-            session.run("MERGE (p:Player {firstName: $firstName, lastName: $lastName})-[:ACTED_IN]->(n:Team {id: $teamId}) " +
-                    "RETURN p, m", Values.parameters("firstName", player.getFirstName(),
-                    "lastName", player.getLastName(), "teamId", teamId));
+            session.run("MATCH (n:Team), (p:Player) WHERE n.id = $teamId AND p.id = $playerId MERGE (n)-[:CONTAINS]->(p)",
+                    Values.parameters("teamId", teamId,
+                    "playerId", playerId));
         }
     }
 
     public void getTeamsPlayers(String teamName) {
         try (Session session = driver.session()) {
-            Result result = session.run(String.format("MATCH (t:Team {name: %s}) <-[ACTED_IN]-(p:Player) RETURN p", teamName));
-            while (result.hasNext()) {
-                Record record = result.next();
-                Node node = record.get("n").asNode();
-                System.out.println(node.asMap());
-            }
+            Result result = session.run("MATCH (t:Team)-[:CONTAINS]->(n:Player) WHERE t.name = $name RETURN n", Values.parameters("name", teamName) );
+            PrintUtils.print(result);
         }
     }
 }

@@ -1,4 +1,4 @@
-package org.neo4j;
+package org.neo4j.utils;
 
 import lombok.Getter;
 import org.neo4j.driver.AuthTokens;
@@ -8,9 +8,9 @@ import org.neo4j.driver.GraphDatabase;
 public class Neo4jConnector {
     @Getter
     private final Driver driver;
-    private final String url = "bolt://localhost:7687";
-    private final String username = "username";
-    private final String password = "password";
+    private final String url = "bolt://0.0.0.0:7687";
+    private final String username = "neo4j";
+    private final String password = "nixon-balsa-voice-agent-atomic-3065";
     private static Neo4jConnector INSTANCE;
 
     private Neo4jConnector(){

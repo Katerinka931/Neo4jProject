@@ -1,0 +1,14 @@
+
+// получение данных на экран
+MATCH (n) RETURN n
+MATCH (n:%s) RETURN n
+
+
+// удаление
+MATCH (n:Team) WHERE n.id = "0c3163a0-e3d8-4310-a1a5-afc2adc5e8a6" DETACH DELETE n
+
+
+// создание связи между существующими узлами
+MATCH (n:Team), (p:Player)
+WHERE n.id = "b77c9bac-c3d3-43e7-86a4-8d41c8218eb2" AND p.id = "3b0c5cbd-a07f-4d2a-83ff-88d29f1cd028"
+MERGE (n)-[:KNOWS]->(p)

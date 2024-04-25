@@ -1,4 +1,4 @@
-package org.neo4j;
+package org.neo4j.entities;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 @Setter
 public class Player {
     @Id
-    private int id;
+    private String uuid;
     private String firstName;
     private String lastName;
 

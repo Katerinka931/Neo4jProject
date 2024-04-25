@@ -1,25 +1,31 @@
-package org.neo4j;
+package org.neo4j.service;
 
 import org.neo4j.driver.Driver;
-import org.cassandra.Team;
+import org.neo4j.entities.Player;
+import org.neo4j.entities.Team;
+import org.neo4j.repository.Repository;
 
 
-public class TeamService4 {
-    private final Neo4jRepository repository;
+public class Service {
+    private final Repository repository;
 
-    public TeamService4(Driver driver) {
-        repository = new Neo4jRepository(driver);
+    public Service(Driver driver) {
+        repository = new Repository(driver);
     }
 
-    public void createTeam(String label, Team team) {
-        repository.createTeam(label, team);
+    public void createTeam(Team team) {
+        repository.createTeam(team);
     }
 
-    public void updateTeam(String label, Team team) {
-        repository.updateTeam(label, team);
+    public void createPlayer(Player player) {
+        repository.createPlayer(player);
     }
 
-    public void deleteNode(String label, int id) {
+    public void updateTeam(Team team) {
+        repository.updateTeam(team);
+    }
+
+    public void deleteNode(String label, String id) {
         repository.deleteNode(label, id);
     }
 
@@ -27,8 +33,8 @@ public class TeamService4 {
         repository.getNodesByMark(label);
     }
 
-    public void addPlayerToTeam(int teamId, Player player) {
-        repository.addPlayerToTeam(teamId, player);
+    public void addPlayerToTeam(String teamId, String playerId) {
+        repository.addPlayerToTeam(teamId, playerId);
     }
 
     public void getTeamsPlayers(String teamName) {
